@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Query Assistant</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        .drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+        }
+        .drop-area.highlight {
+            border-color: #3498db;
+            background-color: #ecf0f1;
+        }
+        .drop-area p {
+            margin: 0;
+            color: #7f8c8d;
+        }
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 15px;
+            display: none;
+            border-radius: 4px;
+        }
+        .button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .language-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .language-selector label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        .response-area {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            display: none;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: #e74c3c;
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #fadbd8;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Query Assistant</h1>
+    
+    <div class="container">
+        <div class="language-selector">
+            <label>
+                <input type="radio" name="language" value="english" checked>
+                English
+            </label>
+            <label>
+                <input type="radio" name="language" value="italian">
+                Italian
+            </label>
+            <label>
+                <input type="radio" name="language" value="spanish">
+                Spanish
+            </label>
+        </div>
+        
+        <div class="input-area">
+            <textarea id="query-input" placeholder="Enter your question or paste code here..."></textarea>
+            
+            <div id="drop-area" class="drop-area">
+                <p>Drag and drop an image here, or click to select a file</p>
+                <input type="file" id="file-input" accept="image/*" style="display: none">
+                <img id="image-preview" class="image-preview" src="" alt="Preview">
+            </div>
+            
+            <button id="submit-button" class="button">Get Answer</button>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Processing your query...</p>
+        </div>
+        
+        <div id="error-message" class="error-message"></div>
+        
+        <div id="response-area" class="response-area"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropArea = document.getElementById('drop-area');
+            const fileInput = document.getElementById('file-input');
+            const imagePreview = document.getElementById('image-preview');
+            const queryInput = document.getElementById('query-input');
+            const submitButton = document.getElementById('submit-button');
+            const responseArea = document.getElementById('response-area');
+            const loadingIndicator = document.getElementById('loading');
+            const errorMessage = document.getElementById('error-message');
+            
+            let imageBase64 = null;
+            
+            // Event listeners for drag and drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropArea.classList.add('highlight');
+            }
+            
+            function unhighlight() {
+                dropArea.classList.remove('highlight');
+            }
+            
+            // Handle dropped files
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+            
+            // Handle file selection via click
+            dropArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+            
+            function handleFiles(files) {
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            imagePreview.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                            imageBase64 = e.target.result.split(',')[1]; // Get base64 data
+                        };
+                        
+                        reader.readAsDataURL(file);
+                    } else {
+                        showError("Please select an image file.");
+                    }
+                }
+            }
+            
+            // Handle form submission
+            submitButton.addEventListener('click', async function() {
+                const query = queryInput.value.trim();
+                if (!query) {
+                    showError("Please enter a question or paste code.");
+                    return;
+                }
+                
+                // Get selected language
+                const languageElements = document.getElementsByName('language');
+                let selectedLanguage = 'english';
+                for (const radioButton of languageElements) {
+                    if (radioButton.checked) {
+                        selectedLanguage = radioButton.value;
+                        break;
+                    }
+                }
+                
+                showLoading();
+                hideError();
+                
+                try {
+                    // In a real implementation, this would connect to an AI API
+                    // For this demo, we'll simulate a response
+                    await simulateAIResponse(query, imageBase64, selectedLanguage);
+                } catch (error) {
+                    showError("Error: " + error.message);
+                } finally {
+                    hideLoading();
+                }
+            });
+            
+            // Simulate AI response (would be replaced with actual API call)
+            async function simulateAIResponse(query, imageData, language) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        let response = '';
+                        
+                        // Simulate different languages
+                        if (language === 'italian') {
+                            response = `<strong>Risposta:</strong><br>`;
+                            if (imageData) {
+                                response += `Ho analizzato la tua immagine e la tua domanda: "${query}".<br><br>`;
+                                response += `Basato sull'immagine caricata e la tua domanda, ecco la risposta: `;
+                                response += `Questa è una simulazione di risposta in italiano. In un'implementazione reale, questo utilizzerebbe un API di AI per analizzare il contenuto.`;
+                            } else {
+                                response += `Ho analizzato la tua domanda: "${query}".<br><br>`;
+                                response += `Basato sul tuo codice/testo, ecco la risposta: `;
+                                response += `Questa è una simulazione di risposta in italiano. In un'implementazione reale, questo utilizzerebbe un API di AI per analizzare il contenuto.`;
+                            }
+                        } else if (language === 'spanish') {
+                            response = `<strong>Respuesta:</strong><br>`;
+                            if (imageData) {
+                                response += `He analizado tu imagen y tu pregunta: "${query}".<br><br>`;
+                                response += `Basado en la imagen subida y tu pregunta, aquí está la respuesta: `;
+                                response += `Esta es una simulación de respuesta en español. En una implementación real, esto usaría una API de IA para analizar el contenido.`;
+                            } else {
+                                response += `He analizado tu pregunta: "${query}".<br><br>`;
+                                response += `Basado en tu código/texto, aquí está la respuesta: `;
+                                response += `Esta es una simulación de respuesta en español. En una implementación real, esto usaría una API de IA para analizar el contenido.`;
+                            }
+                        } else {
+                            response = `<strong>Answer:</strong><br>`;
+                            if (imageData) {
+                                response += `I've analyzed your image and your question: "${query}".<br><br>`;
+                                response += `Based on the uploaded image and your question, here's the answer: `;
+                                response += `This is a simulated response. In a real implementation, this would use an AI API to analyze the content.`;
+                            } else {
+                                response += `I've analyzed your question: "${query}".<br><br>`;
+                                response += `Based on your code/text, here's the answer: `;
+                                response += `This is a simulated response. In a real implementation, this would use an AI API to analyze the content.`;
+                            }
+                        }
+                        
+                        responseArea.innerHTML = response;
+                        responseArea.style.display = 'block';
+                        resolve();
+                    }, 2000); // Simulate 2 second delay
+                });
+            }
+            
+            function showLoading() {
+                loadingIndicator.style.display = 'flex';
+                submitButton.disabled = true;
+            }
+            
+            function hideLoading() {
+                loadingIndicator.style.display = 'none';
+                submitButton.disabled = false;
+            }
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+            
+            function hideError() {
+                errorMessage.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
