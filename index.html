@@ -93,12 +93,22 @@
             gap: 5px;
             cursor: pointer;
         }
+        .api-key-input {
+            margin-bottom: 15px;
+        }
+        .api-key-input input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
         .response-area {
             margin-top: 30px;
             padding: 15px;
             background-color: #f8f9fa;
             border-left: 4px solid #3498db;
             display: none;
+            white-space: pre-wrap;
         }
         .loading {
             display: flex;
@@ -134,6 +144,11 @@
     <h1>AI Query Assistant</h1>
     
     <div class="container">
+        <div class="api-key-input">
+            <label for="api-key">Google AI API Key:</label>
+            <input type="password" id="api-key" placeholder="Enter your Gemini API key">
+        </div>
+        
         <div class="language-selector">
             <label>
                 <input type="radio" name="language" value="english" checked>
@@ -176,6 +191,7 @@
             const dropArea = document.getElementById('drop-area');
             const fileInput = document.getElementById('file-input');
             const imagePreview = document.getElementById('image-preview');
+            const apiKeyInput = document.getElementById('api-key');
             const queryInput = document.getElementById('query-input');
             const submitButton = document.getElementById('submit-button');
             const responseArea = document.getElementById('response-area');
@@ -250,6 +266,13 @@
             // Handle form submission
             submitButton.addEventListener('click', async function() {
                 const query = queryInput.value.trim();
+                const apiKey = apiKeyInput.value.trim();
+                
+                if (!apiKey) {
+                    showError("Please enter your Google AI API key.");
+                    return;
+                }
+                
                 if (!query) {
                     showError("Please enter a question or paste code.");
                     return;
@@ -269,9 +292,9 @@
                 hideError();
                 
                 try {
-                    // In a real implementation, this would connect to an AI API
-                    // For this demo, we'll simulate a response
-                    await simulateAIResponse(query, imageBase64, selectedLanguage);
+                    const response = await queryGeminiAPI(query, imageBase64, selectedLanguage, apiKey);
+                    responseArea.textContent = response;
+                    responseArea.style.display = 'block';
                 } catch (error) {
                     showError("Error: " + error.message);
                 } finally {
@@ -279,53 +302,56 @@
                 }
             });
             
-            // Simulate AI response (would be replaced with actual API call)
-            async function simulateAIResponse(query, imageData, language) {
-                return new Promise((resolve) => {
-                    setTimeout(() => {
-                        let response = '';
-                        
-                        // Simulate different languages
-                        if (language === 'italian') {
-                            response = `<strong>Risposta:</strong><br>`;
-                            if (imageData) {
-                                response += `Ho analizzato la tua immagine e la tua domanda: "${query}".<br><br>`;
-                                response += `Basato sull'immagine caricata e la tua domanda, ecco la risposta: `;
-                                response += `Questa è una simulazione di risposta in italiano. In un'implementazione reale, questo utilizzerebbe un API di AI per analizzare il contenuto.`;
-                            } else {
-                                response += `Ho analizzato la tua domanda: "${query}".<br><br>`;
-                                response += `Basato sul tuo codice/testo, ecco la risposta: `;
-                                response += `Questa è una simulazione di risposta in italiano. In un'implementazione reale, questo utilizzerebbe un API di AI per analizzare il contenuto.`;
-                            }
-                        } else if (language === 'spanish') {
-                            response = `<strong>Respuesta:</strong><br>`;
-                            if (imageData) {
-                                response += `He analizado tu imagen y tu pregunta: "${query}".<br><br>`;
-                                response += `Basado en la imagen subida y tu pregunta, aquí está la respuesta: `;
-                                response += `Esta es una simulación de respuesta en español. En una implementación real, esto usaría una API de IA para analizar el contenido.`;
-                            } else {
-                                response += `He analizado tu pregunta: "${query}".<br><br>`;
-                                response += `Basado en tu código/texto, aquí está la respuesta: `;
-                                response += `Esta es una simulación de respuesta en español. En una implementación real, esto usaría una API de IA para analizar el contenido.`;
-                            }
-                        } else {
-                            response = `<strong>Answer:</strong><br>`;
-                            if (imageData) {
-                                response += `I've analyzed your image and your question: "${query}".<br><br>`;
-                                response += `Based on the uploaded image and your question, here's the answer: `;
-                                response += `This is a simulated response. In a real implementation, this would use an AI API to analyze the content.`;
-                            } else {
-                                response += `I've analyzed your question: "${query}".<br><br>`;
-                                response += `Based on your code/text, here's the answer: `;
-                                response += `This is a simulated response. In a real implementation, this would use an AI API to analyze the content.`;
-                            }
+            // Connect to Gemini API
+            async function queryGeminiAPI(query, imageData, language, apiKey) {
+                const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent";
+                
+                let prompt;
+                if (language === 'italian') {
+                    prompt = "Rispondi alla seguente domanda in italiano: " + query;
+                } else if (language === 'spanish') {
+                    prompt = "Responde a la siguiente pregunta en español: " + query;
+                } else {
+                    prompt = "Answer the following question in English: " + query;
+                }
+                
+                const requestBody = {
+                    contents: [
+                        {
+                            parts: [
+                                {
+                                    text: prompt
+                                }
+                            ]
                         }
-                        
-                        responseArea.innerHTML = response;
-                        responseArea.style.display = 'block';
-                        resolve();
-                    }, 2000); // Simulate 2 second delay
+                    ]
+                };
+                
+                // Add image to the request if available
+                if (imageData) {
+                    requestBody.contents[0].parts.push({
+                        inline_data: {
+                            mime_type: "image/jpeg",
+                            data: imageData
+                        }
+                    });
+                }
+                
+                const response = await fetch(`${apiUrl}?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
                 });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || "API request failed");
+                }
+                
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
             }
             
             function showLoading() {
