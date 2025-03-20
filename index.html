@@ -9,16 +9,58 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
             background-color: #f5f7fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        
+        /* Password screen styles */
+        #password-screen {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        
+        .password-container {
+            text-align: center;
+            width: 300px;
+        }
+        
+        .password-container input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        /* Main app styles */
+        #app-container {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+        }
+        
         h1 {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 30px;
         }
+        
         .container {
             background-color: white;
             border-radius: 8px;
@@ -26,11 +68,13 @@
             padding: 20px;
             margin-bottom: 20px;
         }
+        
         .input-area {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
+        
         textarea {
             width: 100%;
             min-height: 150px;
@@ -41,6 +85,7 @@
             font-size: 14px;
             resize: vertical;
         }
+        
         .drop-area {
             border: 2px dashed #ccc;
             border-radius: 8px;
@@ -50,14 +95,17 @@
             transition: all 0.3s;
             background-color: #f9f9f9;
         }
+        
         .drop-area.highlight {
             border-color: #3498db;
             background-color: #ecf0f1;
         }
+        
         .drop-area p {
             margin: 0;
             color: #7f8c8d;
         }
+        
         .image-preview {
             max-width: 100%;
             max-height: 300px;
@@ -65,6 +113,7 @@
             display: none;
             border-radius: 4px;
         }
+        
         .button {
             background-color: #3498db;
             color: white;
@@ -75,33 +124,29 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
+        
         .button:hover {
             background-color: #2980b9;
         }
+        
         .button:disabled {
             background-color: #95a5a6;
             cursor: not-allowed;
         }
+        
         .language-selector {
             display: flex;
             gap: 15px;
             margin-bottom: 15px;
         }
+        
         .language-selector label {
             display: flex;
             align-items: center;
             gap: 5px;
             cursor: pointer;
         }
-        .api-key-input {
-            margin-bottom: 15px;
-        }
-        .api-key-input input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
+        
         .response-area {
             margin-top: 30px;
             padding: 15px;
@@ -110,6 +155,7 @@
             display: none;
             white-space: pre-wrap;
         }
+        
         .loading {
             display: flex;
             justify-content: center;
@@ -118,6 +164,7 @@
             margin-top: 20px;
             display: none;
         }
+        
         .spinner {
             border: 4px solid rgba(0, 0, 0, 0.1);
             width: 24px;
@@ -126,10 +173,12 @@
             border-left-color: #3498db;
             animation: spin 1s linear infinite;
         }
+        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
         .error-message {
             color: #e74c3c;
             display: none;
@@ -141,62 +190,105 @@
     </style>
 </head>
 <body>
-    <h1>AI Query Assistant</h1>
+    <!-- Password Screen -->
+    <div id="password-screen">
+        <div class="password-container">
+            <input type="password" id="password-input" placeholder="Enter password" autocomplete="off">
+            <button id="password-submit" class="button">Enter</button>
+        </div>
+    </div>
     
-    <div class="container">
-        <div class="api-key-input">
-            <label for="api-key">Google AI API Key:</label>
-            <input type="password" id="api-key" placeholder="Enter your Gemini API key">
-        </div>
+    <!-- Main Application -->
+    <div id="app-container">
+        <h1>AI Query Assistant</h1>
         
-        <div class="language-selector">
-            <label>
-                <input type="radio" name="language" value="english" checked>
-                English
-            </label>
-            <label>
-                <input type="radio" name="language" value="italian">
-                Italian
-            </label>
-            <label>
-                <input type="radio" name="language" value="spanish">
-                Spanish
-            </label>
-        </div>
-        
-        <div class="input-area">
-            <textarea id="query-input" placeholder="Enter your question or paste code here..."></textarea>
-            
-            <div id="drop-area" class="drop-area">
-                <p>Drag and drop an image here, or click to select a file</p>
-                <input type="file" id="file-input" accept="image/*" style="display: none">
-                <img id="image-preview" class="image-preview" src="" alt="Preview">
+        <div class="container">
+            <div class="language-selector">
+                <label>
+                    <input type="radio" name="language" value="english" checked>
+                    English
+                </label>
+                <label>
+                    <input type="radio" name="language" value="italian">
+                    Italian
+                </label>
+                <label>
+                    <input type="radio" name="language" value="spanish">
+                    Spanish
+                </label>
             </div>
             
-            <button id="submit-button" class="button">Get Answer</button>
+            <div class="input-area">
+                <textarea id="query-input" placeholder="Enter your question or paste code here..."></textarea>
+                
+                <div id="drop-area" class="drop-area">
+                    <p>Drag and drop an image here, or click to select a file</p>
+                    <input type="file" id="file-input" accept="image/*" style="display: none">
+                    <img id="image-preview" class="image-preview" src="" alt="Preview">
+                </div>
+                
+                <button id="submit-button" class="button">Get Answer</button>
+            </div>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Processing your query...</p>
+            </div>
+            
+            <div id="error-message" class="error-message"></div>
+            
+            <div id="response-area" class="response-area"></div>
         </div>
-        
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <p>Processing your query...</p>
-        </div>
-        
-        <div id="error-message" class="error-message"></div>
-        
-        <div id="response-area" class="response-area"></div>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Password verification
+            const passwordScreen = document.getElementById('password-screen');
+            const passwordInput = document.getElementById('password-input');
+            const passwordSubmit = document.getElementById('password-submit');
+            const appContainer = document.getElementById('app-container');
+            
+            // Set focus on password input
+            passwordInput.focus();
+            
+            // Check password on button click
+            passwordSubmit.addEventListener('click', checkPassword);
+            
+            // Also check password when Enter key is pressed
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+            
+            function checkPassword() {
+                if (passwordInput.value === "Giovanni") {
+                    passwordScreen.style.display = "none";
+                    appContainer.style.display = "block";
+                } else {
+                    passwordInput.value = "";
+                    passwordInput.placeholder = "Incorrect. Try again.";
+                    passwordInput.classList.add("error");
+                    setTimeout(() => {
+                        passwordInput.placeholder = "Enter password";
+                        passwordInput.classList.remove("error");
+                    }, 2000);
+                }
+            }
+            
+            // Main application code
             const dropArea = document.getElementById('drop-area');
             const fileInput = document.getElementById('file-input');
             const imagePreview = document.getElementById('image-preview');
-            const apiKeyInput = document.getElementById('api-key');
             const queryInput = document.getElementById('query-input');
             const submitButton = document.getElementById('submit-button');
             const responseArea = document.getElementById('response-area');
             const loadingIndicator = document.getElementById('loading');
             const errorMessage = document.getElementById('error-message');
+            
+            // Store the Gemini API key
+            const GEMINI_API_KEY = "AIzaSyCMlrRbYRPIJlU_D-Yg44I2KgwaLJ93CwM";
             
             let imageBase64 = null;
             
@@ -266,12 +358,6 @@
             // Handle form submission
             submitButton.addEventListener('click', async function() {
                 const query = queryInput.value.trim();
-                const apiKey = apiKeyInput.value.trim();
-                
-                if (!apiKey) {
-                    showError("Please enter your Google AI API key.");
-                    return;
-                }
                 
                 if (!query) {
                     showError("Please enter a question or paste code.");
@@ -292,7 +378,7 @@
                 hideError();
                 
                 try {
-                    const response = await queryGeminiAPI(query, imageBase64, selectedLanguage, apiKey);
+                    const response = await queryGeminiAPI(query, imageBase64, selectedLanguage);
                     responseArea.textContent = response;
                     responseArea.style.display = 'block';
                 } catch (error) {
@@ -303,7 +389,7 @@
             });
             
             // Connect to Gemini API
-            async function queryGeminiAPI(query, imageData, language, apiKey) {
+            async function queryGeminiAPI(query, imageData, language) {
                 const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent";
                 
                 let prompt;
@@ -337,21 +423,26 @@
                     });
                 }
                 
-                const response = await fetch(`${apiUrl}?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || "API request failed");
+                try {
+                    const response = await fetch(`${apiUrl}?key=${GEMINI_API_KEY}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || "API request failed");
+                    }
+                    
+                    const data = await response.json();
+                    return data.candidates[0].content.parts[0].text;
+                } catch (error) {
+                    console.error("API Error:", error);
+                    throw new Error("Failed to connect to Gemini API. Check your internet connection or try again later.");
                 }
-                
-                const data = await response.json();
-                return data.candidates[0].content.parts[0].text;
             }
             
             function showLoading() {
